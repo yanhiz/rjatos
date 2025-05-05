@@ -1,12 +1,15 @@
 Package: rjatos
 Type: Package
 Title: Writing and reading Jatos files with R
-Version: 0.1.1
+Version: 0.1.2
 Author: Yanis da Cunha
 Maintainer: Yanis da Cunha <yanis.da-cunha@uni-graz.at>
 Description:
     The write_stimuli function creates a stimuli.js file from .csv files.
     The read_jatos function reads the result text file exported from Jatos and creates a data frame.
+Imports:
+    tidyverse
+    jsonlite
 License: None
 Encoding: UTF-8
 LazyData: true
