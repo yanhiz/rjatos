@@ -13,6 +13,7 @@
 #' Possible issue: if the result file contains nested lists, it is likely that they will end up in your data frame too.
 #' Use the tidyverse `unnest_wider` function to expand them as new columns.
 #' Currently, only the nested lists from `survey` items are handled.
+#' @export
 
 read_jatos <- function(result_file) {
   library(tidyverse)
