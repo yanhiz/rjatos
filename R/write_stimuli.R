@@ -7,8 +7,10 @@
 #' @param experiment_folder The path to the folder of your experiment.
 #' @examples
 #' write_stimuli('myexperiment/items.csv','/jatosfolder')
+
+#' @importFrom jsonlite toJSON
 #' @import tidyverse
-#' @import jsonlite
+
 #' @export
 write_stimuli <- function(csv_file,experiment_folder){
   items <- read_csv(csv_path)

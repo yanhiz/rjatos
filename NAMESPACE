@@ -2,3 +2,6 @@
 
 export(read_jatos)
 export(write_stimuli)
+import(tidyverse)
+importFrom(jsonlite,fromJSON)
+importFrom(jsonlite,toJSON)
