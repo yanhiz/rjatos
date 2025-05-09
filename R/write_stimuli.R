@@ -13,7 +13,7 @@
 
 #' @export
 write_stimuli <- function(csv_file,experiment_folder){
-  items <- read_csv(csv_path)
+  items <- read_csv(csv_file)
 
   stimuli <- paste('var stimuli =\n',toJSON(items,pretty = T))
 
