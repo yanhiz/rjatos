@@ -19,6 +19,9 @@
 
 #' @export
 read_jatos <- function(result_file) {
+  library(tidyverse)
+  library(jsonlite)
+
   raw_data <- read_file(result_file)
 
   if(str_detect(raw_data,"Participant left with list")){

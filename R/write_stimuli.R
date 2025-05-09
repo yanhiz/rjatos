@@ -13,6 +13,9 @@
 
 #' @export
 write_stimuli <- function(csv_file,experiment_folder){
+  library(tidyverse)
+  library(jsonlite)
+
   items <- read_csv(csv_file)
 
   stimuli <- paste('var stimuli =\n',toJSON(items,pretty = T))
