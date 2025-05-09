@@ -18,5 +18,5 @@ write_stimuli <- function(csv_file,experiment_folder){
 
   stimuli <- paste('var stimuli =\n',jsonlite::toJSON(items,pretty = T))
 
-  write_file(stimuli,file=paste0(experiment_path,'/stimuli.js'))
+  write_file(stimuli,file=paste0(experiment_folder,'/stimuli.js'))
 }
