@@ -19,8 +19,6 @@
 
 #' @export
 read_jatos <- function(result_file) {
-  library(tidyverse)
-  library(jsonlite)
 
   raw_data <- read_file(result_file)
 
@@ -38,7 +36,7 @@ read_jatos <- function(result_file) {
 
     new_data <- tibble()
     for (participant in split_data){
-      new_data <- rbind(new_data,fromJSON(participant) %>% tibble())
+      new_data <- rbind(new_data,jsonlite::fromJSON(participant) %>% tibble())
     }
 
     metadata <- new_data %>%
