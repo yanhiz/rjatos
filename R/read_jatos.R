@@ -22,7 +22,7 @@ read_jatos <- function(result_file) {
 
   raw_data <- read_file(result_file)
 
-  if(str_detect(raw_data,"Participant left with list")){
+  if(str_detect(raw_data,"left with list")){
     stop('Found "Participant left" strings.
          Some participants in the data may have left the experiment.
          Remove them from the Jatos export retrieving only participants with "FINISHED" status',
