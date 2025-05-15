@@ -20,14 +20,7 @@
 #' @export
 read_jatos <- function(result_file) {
 
-  raw_data <- read_file(result_file)
-
-  if(str_detect(raw_data,"left with list")){
-    stop('Found "Participant left" strings.
-         Some participants in the data may have left the experiment.
-         Remove them from the Jatos export retrieving only participants with "FINISHED" status',
-         call. = F)
-  } else {
+    raw_data <- read_file(result_file)
 
     split_data <- raw_data %>%
       str_split_1('\n')
@@ -35,8 +28,10 @@ read_jatos <- function(result_file) {
     split_data <- split_data[-length(split_data)]
 
     new_data <- tibble()
+    i <- 0
     for (participant in split_data){
-      new_data <- rbind(new_data,jsonlite::fromJSON(participant) %>% tibble())
+      i <- i + 1
+      new_data <- rbind(new_data,jsonlite::fromJSON(participant) %>% tibble() %>% mutate(part_id=i,.before=1))
     }
 
     metadata <- new_data %>%
@@ -55,5 +50,4 @@ read_jatos <- function(result_file) {
       left_join(metadata,by='participant')
 
     data
-  }
 }
