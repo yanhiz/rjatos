@@ -4,18 +4,19 @@
 \alias{read_jatos}
 \title{Read result file from Jatos}
 \usage{
-read_jatos(result_file)
+read_jatos(result_file, add_unique_ids = TRUE)
 }
 \arguments{
 \item{result_file}{The path to the result text file exported from Jatos.}
+
+\item{add_unique_ids}{Adds a unique ID to each participant. Default TRUE. If false, the `participant` value from Jatos is taken.}
 }
 \value{
 A data frame
 }
 \description{
 This function reads the result text file exported from Jatos and creates a data frame.
-Make sure that the result file does not contain "Participant left" sequencies, otherwise it returns an error.
-Those sequencies can be removed from Jatos keeping only participants with "FINISHED" status.
+By default, it assigns each participant a unique ID.
 }
 \examples{
 data <- read_jatos('myresults.txt')

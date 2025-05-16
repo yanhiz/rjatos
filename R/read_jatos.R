@@ -1,10 +1,10 @@
 #' Read result file from Jatos
 #'
 #' This function reads the result text file exported from Jatos and creates a data frame.
-#' Make sure that the result file does not contain "Participant left" sequencies, otherwise it returns an error.
-#' Those sequencies can be removed from Jatos keeping only participants with "FINISHED" status.
+#' By default, it assigns each participant a unique ID.
 #'
 #' @param result_file The path to the result text file exported from Jatos.
+#' @param add_unique_ids Adds a unique ID to each participant. Default TRUE. If false, the `participant` value from Jatos is taken.
 #' @returns A data frame
 #' @examples
 #' data <- read_jatos('myresults.txt')
@@ -18,7 +18,7 @@
 #' @import tidyverse
 
 #' @export
-read_jatos <- function(result_file) {
+read_jatos <- function(result_file,add_unique_ids=TRUE) {
 
     raw_data <- read_file(result_file)
 
@@ -30,8 +30,12 @@ read_jatos <- function(result_file) {
     new_data <- tibble()
     i <- 0
     for (participant in split_data){
+      if (add_unique_ids) {
       i <- i + 1
-      new_data <- rbind(new_data,jsonlite::fromJSON(participant) %>% tibble() %>% mutate(part_id=i,.before=1))
+      new_data <- rbind(new_data,jsonlite::fromJSON(participant) %>% tibble() %>% mutate(participant=i,.before=1))
+      } else {
+      new_data <- rbind(new_data,jsonlite::fromJSON(participant) %>% tibble())
+      }
     }
 
     metadata <- new_data %>%
@@ -40,7 +44,7 @@ read_jatos <- function(result_file) {
 
     data <- new_data %>%
       filter(trial_type!='survey') %>%
-      unnest(response)
+      unnest_wider(response,names_sep='')
 
     rm <- intersect(colnames(data),colnames(metadata))
 
