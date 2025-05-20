@@ -4,19 +4,19 @@
 \alias{read_jatos}
 \title{Read result file from Jatos}
 \usage{
-read_jatos(result_file, add_unique_ids = TRUE)
+read_jatos(result_file, add_unique_ids = FALSE)
 }
 \arguments{
 \item{result_file}{The path to the result text file exported from Jatos.}
 
-\item{add_unique_ids}{Adds a unique ID to each participant. Default TRUE. If false, the `participant` value from Jatos is taken.}
+\item{add_unique_ids}{Adds a sequential ID to participants. Default FALSE. If true, the `participant` value from Jatos is erased.}
 }
 \value{
 A data frame
 }
 \description{
 This function reads the result text file exported from Jatos and creates a data frame.
-By default, it assigns each participant a unique ID.
+It can also reassign each participant a sequential ID.
 }
 \examples{
 data <- read_jatos('myresults.txt')

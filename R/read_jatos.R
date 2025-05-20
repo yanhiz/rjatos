@@ -1,10 +1,10 @@
 #' Read result file from Jatos
 #'
 #' This function reads the result text file exported from Jatos and creates a data frame.
-#' By default, it assigns each participant a unique ID.
+#' It can also reassign each participant a sequential ID.
 #'
 #' @param result_file The path to the result text file exported from Jatos.
-#' @param add_unique_ids Adds a unique ID to each participant. Default TRUE. If false, the `participant` value from Jatos is taken.
+#' @param add_unique_ids Adds a sequential ID to participants. Default FALSE. If true, the `participant` value from Jatos is erased.
 #' @returns A data frame
 #' @examples
 #' data <- read_jatos('myresults.txt')
@@ -18,7 +18,7 @@
 #' @import tidyverse
 
 #' @export
-read_jatos <- function(result_file,add_unique_ids=TRUE) {
+read_jatos <- function(result_file,add_unique_ids=FALSE) {
 
     raw_data <- read_file(result_file)
 
