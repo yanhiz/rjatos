@@ -4,10 +4,12 @@
 \alias{write_stimuli}
 \title{Write stimuli for Jatos}
 \usage{
-write_stimuli(csv_file, experiment_folder)
+write_stimuli(csv_file, experiment_folder, delim = ",")
 }
 \arguments{
 \item{experiment_folder}{The path to the folder of your experiment.}
+
+\item{delim}{Delimitation symbol used in the .csv file. Default is ",".}
 
 \item{csvfile}{The path to the csv file containing your items.}
 }
