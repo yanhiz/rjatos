@@ -11,7 +11,7 @@ write_stimuli(csv_file, experiment_folder, delim = ",", null_string = TRUE)
 
 \item{delim}{Delimitation symbol used in the .csv file. Default is ",".}
 
-\item{null_string}{Default `TRUE`. `TRUE` includes null strings for unfilled columns of the data frame. `FALSE` removes unfilled columns.}
+\item{null_string}{Default `TRUE`. `TRUE` includes empty strings for unfilled columns of the stimuli csv file. `FALSE` removes unfilled columns.}
 
 \item{csvfile}{The path to the csv file containing your items.}
 }
@@ -21,4 +21,5 @@ The stimuli.js file has to added in the Jatos folder of your experiment (in jato
 }
 \examples{
 write_stimuli('myexperiment/items.csv','/jatosfolder')
+
 }

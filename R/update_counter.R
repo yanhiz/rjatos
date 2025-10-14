@@ -10,6 +10,7 @@
 #'
 #' @export
 update_counter <- function(jatos_path){
+
   jatos_path <- '/home/yanis/Jatos'
 
   list <- list.dirs(paste0(jatos_path,'/study_assets_root'),recursive = F)
@@ -19,5 +20,3 @@ update_counter <- function(jatos_path){
                   paste0(dir,"/jatos/counter.js"))
   }
 }
-
-
