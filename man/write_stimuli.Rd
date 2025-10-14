@@ -4,12 +4,14 @@
 \alias{write_stimuli}
 \title{Write stimuli for Jatos}
 \usage{
-write_stimuli(csv_file, experiment_folder, delim = ",")
+write_stimuli(csv_file, experiment_folder, delim = ",", null_string = TRUE)
 }
 \arguments{
 \item{experiment_folder}{The path to the folder of your experiment.}
 
 \item{delim}{Delimitation symbol used in the .csv file. Default is ",".}
+
+\item{null_string}{Default `TRUE`. `TRUE` includes null strings for unfilled columns of the data frame. `FALSE` removes unfilled columns.}
 
 \item{csvfile}{The path to the csv file containing your items.}
 }

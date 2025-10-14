@@ -4,12 +4,19 @@
 \alias{read_jatos}
 \title{Read result file from Jatos}
 \usage{
-read_jatos(result_file, add_unique_ids = FALSE)
+read_jatos(
+  result_file,
+  add_unique_ids = FALSE,
+  flatten = TRUE,
+  remove = "response."
+)
 }
 \arguments{
 \item{result_file}{The path to the result text file exported from Jatos.}
 
-\item{add_unique_ids}{Adds a sequential ID to participants. Default FALSE. If true, the `participant` value from Jatos is erased.}
+\item{add_unique_ids}{Default FALSE. Adds a sequential ID to participants. If true, the `participant` value from Jatos is erased.}
+
+\item{flatten}{Default `TRUE`. automatically `flatten()` nested data frames into a single non-nested data frame. From `jsonlite` package.}
 }
 \value{
 A data frame
@@ -22,7 +29,4 @@ It can also reassign each participant a sequential ID.
 data <- read_jatos('myresults.txt')
 
 
-Possible issue: if the result file contains nested lists, it is likely that they will end up in your data frame too.
-Use the tidyverse `unnest_wider` function to expand them as new columns.
-Currently, only the nested lists from `survey` items are handled.
 }
