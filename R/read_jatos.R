@@ -33,11 +33,11 @@ read_jatos <- function(result_file,add_unique_ids=FALSE,flatten=TRUE,remove='res
               {if (add_unique_ids) {.} %>%  mutate(participant=i,.before=1) else {.}}
       new_data <- rbind(new_data,participant_data)
     }
-    new_data <- new_data %>% unnest(where(is.list),names_sep = '.')
 
     metadata <- new_data %>%
       filter(trial_type=='survey') %>%
-      select_if(~ !all(is.na(.x)))
+      select_if(~ !all(is.na(.x))) %>%
+      unnest(where(is.list),names_sep = '.')
 
     data <- new_data %>%
       filter(trial_type!='survey') %>%
