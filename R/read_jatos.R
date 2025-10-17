@@ -17,39 +17,42 @@
 #' @export
 read_jatos <- function(result_file,add_unique_ids=FALSE,flatten=TRUE,remove='response.') {
 
-    raw_data <- read_file(result_file)
+  raw_data <- read_file(result_file)
 
-    split_data <- raw_data %>%
-      str_split_1('\n')
+  split_data <- raw_data %>%
+    str_split_1('\n')
 
-    split_data <- split_data[-length(split_data)]
+  split_data <- split_data[-length(split_data)]
 
-    new_data <- tibble()
-    i <- 0
-    for (participant in split_data){
-      i <- i + 1
-      participant_data <- jsonlite::fromJSON(participant,flatten=flatten) %>%
-              tibble() %>%
-              {if (add_unique_ids) {.} %>%  mutate(participant=i,.before=1) else {.}}
-      new_data <- rbind(new_data,participant_data)
-    }
+  new_data <- tibble()
+  i <- 0
+  for (participant in split_data){
+    i <- i + 1
+    participant_data <- jsonlite::fromJSON(participant,flatten=flatten) %>%
+      tibble() %>%
+      {if (add_unique_ids) {.} %>%  mutate(participant=i,.before=1) else {.}}
+    new_data <- rbind(new_data,participant_data)
+  }
 
-    metadata <- new_data %>%
-      filter(trial_type=='survey') %>%
-      select_if(~ !all(is.na(.x))) %>%
-      unnest(where(is.list),names_sep = '.')
+  new_data <- new_data %>%
+    rowwise %>%
+    mutate_if(is.list,~ifelse(is.list(.x),do.call(paste,c(.x,sep=':')) %>% paste(collapse = ";"),NA))
 
-    data <- new_data %>%
-      filter(trial_type!='survey') %>%
-      select_if(~ !all(is.na(.x)))
+  metadata <- new_data %>%
+    filter(trial_type=='survey') %>%
+    select_if(~ !all(is.na(.x)))
 
-    rm <- intersect(colnames(data),colnames(metadata))
+  data <- new_data %>%
+    filter(trial_type!='survey') %>%
+    select_if(~ !all(is.na(.x)))
 
-    metadata <- metadata %>% select(participant,!all_of(rm))
+  rm <- intersect(colnames(data),colnames(metadata))
 
-    data <- data %>%
-      left_join(metadata,by='participant') %>%
-      {if (remove!='') {.} %>% rename_with(~str_replace(.x,remove,'')) else {.}}
+  metadata <- metadata %>% select(participant,!all_of(rm))
 
-    data
+  data <- data %>%
+    left_join(metadata,by='participant') %>%
+    {if (remove!='') {.} %>% rename_with(~str_replace(.x,remove,'')) else {.}}
+
+  data
 }
