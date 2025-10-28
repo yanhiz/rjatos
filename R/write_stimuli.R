@@ -23,7 +23,7 @@ write_stimuli <- function(stimuli_file,experiment_folder,sheet=1,delim=',',null_
   if (str_detect(stimuli_file,'\\.csv$')) {
     items <- read_delim(stimuli_file,delim=delim)
   } else {
-    items <- read_excel(stimuli_file,sheet=sheet)
+    items <- read_excel(stimuli_file,sheet=sheet,trim_ws=F)
   }
 
   if (null_string) {

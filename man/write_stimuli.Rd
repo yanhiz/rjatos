@@ -4,22 +4,30 @@
 \alias{write_stimuli}
 \title{Write stimuli for Jatos}
 \usage{
-write_stimuli(csv_file, experiment_folder, delim = ",", null_string = TRUE)
+write_stimuli(
+  stimuli_file,
+  experiment_folder,
+  sheet = 1,
+  delim = ",",
+  null_string = TRUE
+)
 }
 \arguments{
+\item{stimuli_file}{The path to the xls/csv file containing your items.}
+
 \item{experiment_folder}{The path to the folder of your experiment.}
+
+\item{sheet}{Sheet selected from the xls file. Default is `1`.}
 
 \item{delim}{Delimitation symbol used in the .csv file. Default is ",".}
 
 \item{null_string}{Default `TRUE`. `TRUE` includes empty strings for unfilled columns of the stimuli csv file. `FALSE` removes unfilled columns.}
-
-\item{csvfile}{The path to the csv file containing your items.}
 }
 \description{
-This function converts a csv file containing experimental items into a stimuli.js file with JSON format.
+This function converts a xls/csv file containing experimental items into a stimuli.js file with JSON format.
 The stimuli.js file has to added in the Jatos folder of your experiment (in jatos/study_assets_root).
 }
 \examples{
-write_stimuli('myexperiment/items.csv','/jatosfolder')
+write_stimuli('myexperiment/items.xls','/jatosfolder')
 
 }
