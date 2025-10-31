@@ -34,13 +34,15 @@ read_jatos <- function(result_file,add_unique_ids=FALSE,flatten=TRUE,remove='res
     new_data <- rbind(new_data,participant_data)
   }
 
-  new_data <- new_data %>%
-    rowwise %>%
-    mutate_if(is.list,~ifelse(is.list(.x),do.call(paste,c(.x,sep=':')) %>% paste(collapse = ";"),NA))
-
   metadata <- new_data %>%
     filter(trial_type=='survey') %>%
+    unnest_wider(where(is.list),simplify=F) %>%
+    rowwise %>%
+    mutate_if(is.list,~ifelse(is.list(.x)&length(.x)>1,
+                              paste(do.call(paste,c(.x,sep=':')),collapse = ";"),
+                              as.character(.x))) %>%
     select_if(~ !all(is.na(.x)))
+
 
   data <- new_data %>%
     filter(trial_type!='survey') %>%
