@@ -4,22 +4,12 @@
 \alias{read_jatos}
 \title{Read result file from Jatos}
 \usage{
-read_jatos(
-  result_file,
-  add_unique_ids = FALSE,
-  unnest = TRUE,
-  flatten = TRUE,
-  remove = "response."
-)
+read_jatos(result_file, add_unique_ids = FALSE, remove = "response.")
 }
 \arguments{
 \item{result_file}{The path to the result text file exported from Jatos.}
 
 \item{add_unique_ids}{Default FALSE. Adds a sequential ID to participants. If true, the `participant` value from Jatos is erased.}
-
-\item{unnest}{Default `TRUE`. Automatically `unnest_wider()` nested data frames into a single non-nested data frame. The use of this argument depends on what `flatten()` did.}
-
-\item{flatten}{Default `TRUE`. Automatically `flatten()` nested data frames into a single non-nested data frame. From `jsonlite` package.}
 
 \item{remove}{Default `'response.'`. Automatically remove prefixes from data columns names. This is useful when the unnesting of lists led to names columns.}
 }
