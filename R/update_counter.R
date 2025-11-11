@@ -18,5 +18,7 @@ update_counter <- function(jatos_path){
   for (dir in list) {
     download.file("https://raw.githubusercontent.com/yanhiz/rjatos/refs/heads/master/counter.js",
                   paste0(dir,"/jatos/counter.js"))
+    download.file("https://raw.githubusercontent.com/yanhiz/rjatos/refs/heads/master/controller.html",
+                  paste0(dir,"/jatos/controller.html"))
   }
 }

@@ -48,6 +48,7 @@ read_jatos <- function(result_file,add_unique_ids=FALSE,unnest=TRUE,flatten=TRUE
 
   data <- new_data %>%
     filter(trial_type!='survey') %>%
+    unnest_wider(where(is.list),names_sep = '.') %>%
     select_if(~ !all(is.na(.x)))
 
   rm <- intersect(colnames(data),colnames(metadata))
