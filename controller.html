@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<!-- 
+// Version 1.3
+// 16-05-2025 
+-->
+<html>
+  <head>
+    <title>Experiment</title>
+    <!-- STIMULI -->
+    <script src="stimuli.js"></script>
+    <!-- JATOS -->
+    <script src="jatos.js"></script>
+    <script src="jatos/counter.js"></script>
+    <!-- JSPSYCH PLUGINS -->
+    <script src="jspsych/jspsych.js"></script>
+    <script src="https://unpkg.com/@jspsych/plugin-html-button-response@1.2.0"></script>
+    <script src="jspsych/plugin-survey-text.js"></script>
+    <!-- CSS -->
+    <link href="jspsych/jspsych.css" rel="stylesheet" type="text/css" />
+  </head>
+  <body></body>
+  <script>
+    
+jatos.onLoad(() => {
+
+    var jsPsych = initJsPsych({
+      on_finish: () => jatos.endStudy(true,'Controller run')
+    });
+
+    var timeline = [];
+    var types = [];
+
+    var menu = {
+      type: jsPsychHtmlButtonResponse,
+      stimulus: 'What do you want to do?',
+      choices: ['Reinitialize<br>the counter', 'Look at<br>the counter','Select a list manually<br>or cancel a manual selection'],
+      on_finish: function(data) {
+      data.choice = jsPsych.data.get().select('response').values[0]
+
+      }
+    };
+    timeline.push(menu);
+
+
+    var selector = {
+        type: jsPsychSurveyText,
+        questions: [
+          {prompt: 'Which list do you want to select? (Example: A,A,A)<br>To cancel a selection, leave the field empty.'}
+        ],
+        on_finish: function(data){
+          data.manual = jsPsych.data.get().select('response').values[1].Q0
+        }
+
+      }
+
+    var if_node = {
+      timeline: [selector],
+      conditional_function: function(){
+              if (jsPsych.data.get().select('choice').values[0] == 2){
+                return true
+              } else {
+                return false
+              }
+            }
+    }
+    timeline.push(if_node)
+
+    var checking = { 
+    type: jsPsychHtmlButtonResponse,
+    stimulus: '',
+    choices: ['Finish'],
+    on_start: function(trial){
+      var choice = jsPsych.data.get().select('choice').values[0]
+      if (choice == 0 ){
+        var design = make_design(types,update=false,reset=true,new_participant=false)
+      } else {
+        var design = make_design(types,update=false,reset=false,new_participant=false)
+      } 
+      if (choice == 2){
+        var manual = jsPsych.data.get().select('manual').values[0]
+        if (manual.length!==0){
+        design['current_list'] = manual.split(',')
+      }
+      }
+      trial.stimulus = 'Current list counter : '+JSON.stringify(design['list_counter'])+
+              '<br>Current list : '+JSON.stringify(design['current_list'])+
+              '<br>Number of participants : '+JSON.stringify(design['participant_counter'])
+      jsPsych.data.get().design = design;
+      jsPsych.data.get().manual = manual;
+    },
+    on_finish: function(){
+      var choice = jsPsych.data.get().select('choice').values[0]
+      if (choice == 0){
+      var design = jsPsych.data.get().design;
+      jatos.batchSession.add('/missing/-',design['current_list'])
+      }
+      if (choice == 2){
+      var manual = jsPsych.data.get().manual;
+      jatos.batchSession.set('manual',manual)
+      }
+    }
+    };
+    timeline.push(checking);
+
+
+
+
+
+    jsPsych.run(timeline);
+
+
+});
+</script>
+</html>
