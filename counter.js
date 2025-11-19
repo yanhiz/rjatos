@@ -1,5 +1,5 @@
-// Version 1.4
-// 14-10-2025
+// Version 2.0
+// 19-11-2025
 
 var AbortButton = function(design) {
     // When the participant leaves with the Abort Button:
