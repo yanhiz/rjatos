@@ -13,7 +13,7 @@
     <script src="jatos/counter.js"></script>
     <!-- JSPSYCH PLUGINS -->
     <script src="jspsych/jspsych.js"></script>
-    <script src="jspsych/plugin-html-button-response.js"></script>
+    <script src="https://unpkg.com/@jspsych/plugin-html-button-response@1.2.0"></script>
     <script src="jspsych/plugin-survey-text.js"></script>
     <!-- CSS -->
     <link href="jspsych/jspsych.css" rel="stylesheet" type="text/css" />
@@ -28,35 +28,54 @@ jatos.onLoad(() => {
     });
 
     var timeline = [];
-    var types = [];
 
-    var menu = {
+    var design = make_design(types = [],step = false);
+
+    var screen = {
       type: jsPsychHtmlButtonResponse,
-      stimulus: 'What do you want to do?',
-      choices: ['Reinitialize<br>the counter', 'Look at<br>the counter','Select a list manually<br>or cancel a manual selection'],
-      on_finish: function(data) {
-      data.choice = jsPsych.data.get().select('response').values[0]
-
-      }
-    };
-    timeline.push(menu);
-
-
-    var selector = {
-        type: jsPsychSurveyText,
-        questions: [
-          {prompt: 'Which list do you want to select? (Example: A,A,A)<br>To cancel a selection, leave the field empty.'}
-        ],
-        on_finish: function(data){
-          data.manual = jsPsych.data.get().select('response').values[1].Q0
+      stimulus : () => {
+        var {lists,current_list,cycle,cycle_counter,to_do,store,participant_counter,...rest} = design
+        var show_design = ''
+        for (key in lists) {
+          show_design = show_design.concat(`"${key}" with ${Object.keys(lists[key]).length} conditions, `)
         }
+        if (cycle_counter == 0){ var counter_message = `So far, no complete cycle has been done.`} else {
+          if (cycle_counter == 1) { var counter_message = `So far, 1 complete cycle has been done.`} else { 
+            var counter_message = `So far, ${cycle_counter} complete cycles have been done.`}}
+        return `
+        <b>Your design is: </b><br>
+        ${show_design} which requires <u>${cycle.length} participants</u> for a complete cycle.<br><br>
+        The cycle is the following: ${cycle.map((x) => {x = x.toString().replace(',','');return ' '+x})}<br>
+        ${counter_message}<br><br>
+        The next list will be ${current_list}. <br>
+        Currently, ${participant_counter} participants finished the experiment.<br><br>
 
+        
+        <u><b>What do you want to do?</b></u>
+        <br>
+        `
+      },
+      choices : ['<p style="color:blue;"><b>&#128519;<br>Continue</b></p>','<p style="color:red;"><b> &#128520;<br>Reinitialize<b></p>'],
+      on_finish: function(data){
+      data.choice = jsPsych.data.get().select('response').values[0]
+      if (data.choice == 1){
+        jatos.batchSession.clear()
       }
+    }
+  }
+    timeline.push(screen)
+
+   var message = {
+      type: jsPsychHtmlButtonResponse,
+      stimulus:'<p style="font-size:14pt"> &#128520; Your counters have been reinitialized &#128520;</p>',
+
+      choices:['<p style="color:blue;"><b>&#128519;<br>Continue</b></p>']
+   }
 
     var if_node = {
-      timeline: [selector],
+      timeline: [message],
       conditional_function: function(){
-              if (jsPsych.data.get().select('choice').values[0] == 2){
+              if (jsPsych.data.get().select('choice').values[0] == 1){
                 return true
               } else {
                 return false
@@ -64,45 +83,7 @@ jatos.onLoad(() => {
             }
     }
     timeline.push(if_node)
-
-    var checking = { 
-    type: jsPsychHtmlButtonResponse,
-    stimulus: '',
-    choices: ['Finish'],
-    on_start: function(trial){
-      var choice = jsPsych.data.get().select('choice').values[0]
-      if (choice == 0 ){
-        var design = make_design(types,update=false,reset=true,new_participant=false)
-      } else {
-        var design = make_design(types,update=false,reset=false,new_participant=false)
-      } 
-      if (choice == 2){
-        var manual = jsPsych.data.get().select('manual').values[0]
-        if (manual.length!==0){
-        design['current_list'] = manual.split(',')
-      }
-      }
-      trial.stimulus = 'Current list counter : '+JSON.stringify(design['list_counter'])+
-              '<br>Current list : '+JSON.stringify(design['current_list'])+
-              '<br>Number of participants : '+JSON.stringify(design['participant_counter'])
-      jsPsych.data.get().design = design;
-      jsPsych.data.get().manual = manual;
-    },
-    on_finish: function(){
-      var choice = jsPsych.data.get().select('choice').values[0]
-      if (choice == 0){
-      var design = jsPsych.data.get().design;
-      jatos.batchSession.add('/missing/-',design['current_list'])
-      }
-      if (choice == 2){
-      var manual = jsPsych.data.get().manual;
-      jatos.batchSession.set('manual',manual)
-      }
-    }
-    };
-    timeline.push(checking);
-
-
+    
 
 
 

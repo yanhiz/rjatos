@@ -1,31 +1,7 @@
 // Version 2.0
 // 19-11-2025
 
-var AbortButton = function(design) {
-    // When the participant leaves with the Abort Button:
-    // - its list is stored in the Jatos Batch Session;
-    // - the study ends and data are removed.
-    jatos.batchSession.add('/missing/-', design['current_list']);
-    jatos.abortStudy('Participant '+design['current_participant']+' used the Abord button with list '+design['current_list']);
-};
 
-// var CloseButton = function(design) {
-// };
-
-function initiate_counter(start_values, reset = false, lists) {
-    // Get the counter from Jatos Batch Session
-    let counter = jatos.batchSession.getAll();
-    // If the counter is not defined, has length 0, is different from the current stimuli design, or if the reset option selected...
-    if (typeof(counter) == "undefined" || Object.keys(counter).length == 0 || schema(lists) != schema(counter['lists']) ||reset == true) {
-      // ... then the counter takes the start values and is stored in the Jatos Batch Session
-        counter = start_values;
-        jatos.batchSession.clear()
-            .then(() => jatos.batchSession.setAll(counter))
-            .then(() => console.log("Batch Session was successfully reset"))
-            .catch(() => console.log("Batch Session synchronization failed"));
-    };
-    return counter;
-};
 
 function first_least_frequent(freq_object) {
     // Take a frequency Object and returns the first key with the lowest value
@@ -61,20 +37,18 @@ var modulo = function(freq_object, n) {
 };
 
 
-var getRandomInt = function(min, max) {
+var generate_participant = function(participant_list){
+  var getRandomInt = function(min, max) {
   const minCeiled = Math.ceil(min);
   const maxFloored = Math.floor(max);
   // The maximum is exclusive and the minimum is inclusive
   return Math.floor(Math.random() * (maxFloored - minCeiled) + minCeiled); 
-}
-
-var generate_participant = function(participant_list){
+    } 
   id = getRandomInt(1000,10000);
   if (!participant_list.includes(id)){
-    participant_list.push(id);
     return id;
   } else {
-    return store_participant();
+    return generate_participant();
   }
 }
 
@@ -120,7 +94,58 @@ var schema = function(lists) {
     return design_schema
 }
 
-var make_design = function(types = [], update = true, reset = false, new_participant = true) {
+
+
+function initiate_counter(start_values, lists) {
+    // Get the counter from Jatos Batch Session
+    let counter = jatos.batchSession.getAll();
+    var update = true
+    // If the counter is not defined, has length 0, is different from the current stimuli design...
+    if (typeof(counter) == "undefined" || Object.keys(counter).length == 0 || schema(lists) != schema(counter['lists'])) {
+      // ... then the counter takes the start values and is stored in the Jatos Batch Session
+        counter = start_values;
+        update = false
+    };
+    return [counter,update];
+};
+
+function generate_cycle(types, lists){
+        
+    var unique_lists = 1
+    for (var t = 0; t < types.length; t++){
+        var type = types[t];
+        unique_lists = unique_lists * Object.keys(lists[type]).length
+    }
+    
+    var cycle = []
+    for (var i = 0; i < unique_lists; i ++){
+    var n_modulo = 1;
+    var current = []
+    for (var t = 0; t < types.length; t++) {
+          var type = types[t];
+          // Take the modulo of the list frequency for the current type
+          var modulo_list = modulo(lists[type], n_modulo);
+          // Update the modulo divisor based on the current number of lists
+          n_modulo = n_modulo * Object.keys(modulo_list).length;
+          // If the modulo of the list frequency only contains identical values (ie. if all lists are 0 or equal to the modulo divisor)...
+          if (new Set(Object.values(modulo_list)).size == 1) {
+              // ... then, take the first least frequent list based on actual frequencies (ie. the next list in the array of list labels)
+              match = first_least_frequent(lists[type]);
+          } else {
+              // ... otherwise, take the first most frequent list based on modulo frequencies (ie. the current list with non null modulo)
+              match = first_most_frequent(modulo_list);
+          }
+          // Add the matched list to the current list array
+          current.push(match);
+          // Increase the matched list counter
+          ++lists[type][match];
+          }
+    cycle.push(current)
+    }
+    return cycle
+}
+
+var make_design = function(types = [], step = true) {
 
     // Get the array of item types if no types are entered manually
     if (types.length == 0) {
@@ -146,86 +171,95 @@ var make_design = function(types = [], update = true, reset = false, new_partici
 
 
     // Initialize the counter of the Jatos Batch Session
-    var counter = initiate_counter({
+    var toggle = initiate_counter({
         'lists': lists,
-        part_list:[],
-        missing: [],
-        manual: ''
-    }, reset,lists);
+        'cycle': [],
+        'cycle_counter':-1,
+        'to_do': [],
+        'store': [],
+        'part_list':[],
+        'part_finish':[]
+        // 'manual': ''
+    },lists);
+    var new_counter = toggle[0]
+    var update = toggle[1]
+
+    
+
     // Get the values from the counter 
-    var participant_list = counter['part_list'] // List of participants
-    var global__list_counter = counter['lists']; // List counter
-    var missing_list = counter['missing']; // Missing list array
-    var manual_list = counter['manual']; // Manual list
+    var cycle = new_counter['cycle']
+    if (cycle.length == 0) {cycle = generate_cycle(types,lists)}
+    var participant_list = new_counter['part_list'] // List of used participants
+    var participant_finish = new_counter['part_finish'] // List of finished participants
+    var global_to_do = new_counter['to_do']; // List counter
+    var global_store = new_counter['store']; // List counter
+    var cycle_counter = new_counter['cycle_counter']; // Number of rounds
+    // var manual_list = new_counter['manual']; // Manual list
 
+    if (global_to_do.length === 0) {
+        var string_store = [...new Set(global_store.map((x) => {x = x.toString();return x}))].sort().toString()
+        var string_cycle = [...new Set(cycle.map((x) => {x = x.toString();return x}))].sort().toString()
+        if (global_store.length === 0 || string_store === string_cycle) {
+            global_to_do = cycle.slice()
+            global_store = []
+            cycle_counter++
+        } else {
+        var new_to_do = [];
+        var global_store_string = global_store.map((x) => {x = x.toString();return x})
+        cycle.forEach(function (y) {
+            if (!global_store_string.includes(y.toString())){
+                new_to_do.push(y)
+            }
+        });
+        global_to_do = new_to_do.slice()
+        }  
+        }
 
-    // Generate random number 
-    if (new_participant) {
+    var current_list = global_to_do.shift()
     var participant_id = generate_participant(participant_list);
-    };
 
-    // Increment list counter
-    // If a manual list if specified, take it
-    if (manual_list.length != 0) {
-      var current = manual_list.split(',');
-    // If there are missing lists in the array of missing lists, take the first one
-    } else if (missing_list.length != 0) {
-      var current = missing_list.shift();
-    // If there is no manual list specified and no missing list, the regular updating of the list counter is used
+
+    if (step) {
+    if (update == false) {
+        jatos.batchSession.clear()
+            .then(() => jatos.batchSession.setAll(new_counter))
+            .then(() => jatos.batchSession.add('/part_list/-',participant_id))
+            .then(() => jatos.batchSession.set('to_do', global_to_do))
+            .then(() => jatos.batchSession.set('cycle_counter', cycle_counter))
     } else {
-      var current = [];
-      var n_modulo = 1;
-      // For each type of the experiment...
-      for (var t = 0; t < types.length; t++) {
-          var type = types[t];
-          // Take the modulo of the list frequency for the current type
-          var modulo_list = modulo(global__list_counter[type], n_modulo);
-          // Update the modulo divisor based on the current number of lists
-          n_modulo = n_modulo * Object.keys(modulo_list).length;
-          // If the modulo of the list frequency only contains identical values (ie. if all lists are 0 or equal to the modulo divisor)...
-          if (new Set(Object.values(modulo_list)).size == 1) {
-              // ... then, take the first least frequent list based on actual frequencies (ie. the next list in the array of list labels)
-              match = first_least_frequent(global__list_counter[type]);
-          } else {
-              // ... otherwise, take the first most frequent list based on modulo frequencies (ie. the current list with non null modulo)
-              match = first_most_frequent(modulo_list);
-          }
-          // Add the matched list to the current list array
-          current.push(match);
-          // Increase the matched list counter
-          ++global__list_counter[type][match];
-          }
+        jatos.batchSession.add('/part_list/-',participant_id)
+            .then(() => jatos.batchSession.set('to_do', global_to_do))
+            .then(() => jatos.batchSession.set('store', global_store))
+            .then(() => jatos.batchSession.set('cycle_counter', cycle_counter))
+    }
+    
     }
 
-    // Update of the counter
-    if (update) {
-        jatos.batchSession.set('part_list',participant_list)
-            .then(() => jatos.batchSession.set('lists', global__list_counter))
-            .then(() => jatos.batchSession.set('missing', missing_list));
-    }
 
+    
     // Get the stimuli for the current list
     var selected_stimuli = []
     for (var t = 0; t < types.length; t++) {
         var type = types[t];
-        selected_stimuli.push.apply(selected_stimuli, annotated_stimuli.filter(stimulus => stimulus.type == type & stimulus.list == current[t]));
+        selected_stimuli.push.apply(selected_stimuli, annotated_stimuli.filter(stimulus => stimulus.type == type & stimulus.list == current_list[t]));
     }
 
-    var design = {
-        'stimuli': selected_stimuli,
-        'current_list': current,
-        'list_counter': global__list_counter,
-        'current_participant': participant_id,
-        'participant_counter' : participant_list.length
-    };
-    console.log(design);
 
-    // Return a "design Object" containing:
-    // - the select stimuli for the current list
-    // - the current list
-    // - the global counter of lists
-    // - the participant number
-    // - the number of participants
+    var design = {
+        'to_do': global_to_do,
+        'current_list': current_list,
+        'store': global_store,
+        'current_participant': participant_id,
+        'participant_counter' : participant_finish.length,
+        'cycle_counter': cycle_counter,
+        'cycle' : cycle,
+        'lists' : lists,
+        'stimuli': selected_stimuli
+    };
+
+    console.log(JSON.stringify(design,null,2))
 
     return design;
+
 }
+
