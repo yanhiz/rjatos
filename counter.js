@@ -1,6 +1,5 @@
 // Version 2.0
-// 19-11-2025
-
+// 03-12-2025
 
 
 function first_least_frequent(freq_object) {
@@ -27,7 +26,7 @@ function first_most_frequent(freq_object) {
     return match[0];
 };
 
-var modulo = function(freq_object, n) {
+function modulo(freq_object, n) {
     // Take a frequency Object and returns a frequecy Object with the same keys and values modulo n
     var modulo_object = {};
     Object.keys(freq_object).forEach(function(key) {
@@ -36,55 +35,7 @@ var modulo = function(freq_object, n) {
     return modulo_object;
 };
 
-
-var generate_participant = function(participant_list){
-  var getRandomInt = function(min, max) {
-  const minCeiled = Math.ceil(min);
-  const maxFloored = Math.floor(max);
-  // The maximum is exclusive and the minimum is inclusive
-  return Math.floor(Math.random() * (maxFloored - minCeiled) + minCeiled); 
-    } 
-  id = getRandomInt(1000,10000);
-  if (!participant_list.includes(id)){
-    return id;
-  } else {
-    return generate_participant();
-  }
-}
-
-
-var make_list = function(type) {
-
-    // Create a subset of the stimuli for a given type (Example: Critical items, Fillers etc)
-    var subset = stimuli.filter(stimulus => stimulus.type == type);
-    // Get the numbers of conditions of a given type 
-    var n_cond = [];
-    subset.forEach(stimulus => n_cond.push(stimulus.condition)); // Get all conditions
-    n_cond = Array.from(new Set(n_cond)).length; // Keep the number of unique conditions
-    // Create an alphabetical list with the length of the number of conditions
-    var n_list = Array(n_cond).fill().map((element, index) => String.fromCharCode('A'.charCodeAt(0) + index));
-
-    // LATIN SQUARE
-    // Create an array of list labels of the same length as the number of items
-    lists_for_stimuli = [];
-    for (let i = 0; i < subset.length / n_cond; i++) {
-        lists_for_stimuli.push.apply(lists_for_stimuli, n_list); // Add the list labels to the array
-        rem = n_list.pop(); // Remove the last element of the list labels
-        n_list.unshift(rem); // Put the last element in the first position
-    }
-
-    // Add a list label to each item of the subset
-    subset.forEach(stimulus => stimulus.list = lists_for_stimuli.shift());
-
-    // Create a frequency Object with list labels as keys
-    var lists = {};
-    subset.forEach(stimulus => lists[stimulus.list] = 0);
-
-    // Return the subset with list labels and the frequency Object with list labels
-    return [subset, lists];
-}
-
-var schema = function(lists) {
+function schema(lists) {
     // Takes a list counter of the form {type1:{cond1:0,cond2:0},type2:{cond1:0,cond2:0}} and returns a schematic string of the design of the form "type1[cond1,cond2]type2[cond1,cond2]"
     var design_schema = ''
     types = Object.keys(lists)
@@ -92,21 +43,6 @@ var schema = function(lists) {
         design_schema += types[t] + JSON.stringify(Object.keys(lists[types[t]]))
     }
     return design_schema
-}
-
-
-
-function initiate_counter(start_values, lists) {
-    // Get the counter from Jatos Batch Session
-    let counter = jatos.batchSession.getAll();
-    var update = true
-    // If the counter is not defined, has length 0, is different from the current stimuli design...
-    if (typeof(counter) == "undefined" || Object.keys(counter).length == 0 || schema(lists) != schema(counter['lists'])) {
-      // ... then the counter takes the start values and is stored in the Jatos Batch Session
-        counter = start_values;
-        update = false
-    };
-    return [counter,update];
 };
 
 function generate_cycle(types, lists){
@@ -140,12 +76,71 @@ function generate_cycle(types, lists){
           // Increase the matched list counter
           ++lists[type][match];
           }
-    cycle.push(current)
+    cycle.push(current.toString())
     }
     return cycle
-}
+};
 
-var make_design = function(types = [], step = true) {
+function generate_participant(participant_list){
+  var getRandomInt = function(min, max) {
+  const minCeiled = Math.ceil(min);
+  const maxFloored = Math.floor(max);
+  // The maximum is exclusive and the minimum is inclusive
+  return Math.floor(Math.random() * (maxFloored - minCeiled) + minCeiled); 
+    } 
+  id = getRandomInt(1000,10000);
+  if (!participant_list.includes(id)){
+    return id;
+  } else {
+    return generate_participant(participant_list);
+  }
+};
+
+function initiate_counter(start_values, lists) {
+    // Get the counter from Jatos Batch Session
+    let counter = jatos.batchSession.getAll();
+    var update = true
+    // If the counter is not defined, has length 0, is different from the current stimuli design...
+    if (typeof(counter) == "undefined" || Object.keys(counter).length == 0 || schema(lists) != schema(counter['lists'])) {
+      // ... then the counter takes the start values and is stored in the Jatos Batch Session
+        counter = start_values;
+        update = false
+    };
+    return [counter,update];
+};
+
+function make_list(type) {
+
+    // Create a subset of the stimuli for a given type (Example: Critical items, Fillers etc)
+    var subset = stimuli.filter(stimulus => stimulus.type == type);
+    // Get the numbers of conditions of a given type 
+    var n_cond = [];
+    subset.forEach(stimulus => n_cond.push(stimulus.condition)); // Get all conditions
+    n_cond = Array.from(new Set(n_cond)).length; // Keep the number of unique conditions
+    // Create an alphabetical list with the length of the number of conditions
+    var n_list = Array(n_cond).fill().map((element, index) => String.fromCharCode('A'.charCodeAt(0) + index));
+
+    // LATIN SQUARE
+    // Create an array of list labels of the same length as the number of items
+    lists_for_stimuli = [];
+    for (let i = 0; i < subset.length / n_cond; i++) {
+        lists_for_stimuli.push.apply(lists_for_stimuli, n_list); // Add the list labels to the array
+        rem = n_list.pop(); // Remove the last element of the list labels
+        n_list.unshift(rem); // Put the last element in the first position
+    }
+
+    // Add a list label to each item of the subset
+    subset.forEach(stimulus => stimulus.list = lists_for_stimuli.shift());
+
+    // Create a frequency Object with list labels as keys
+    var lists = {};
+    subset.forEach(stimulus => lists[stimulus.list] = 0);
+
+    // Return the subset with list labels and the frequency Object with list labels
+    return [subset, lists];
+};
+
+function make_design(types = [], step = true) {
 
     // Get the array of item types if no types are entered manually
     if (types.length == 0) {
@@ -174,69 +169,38 @@ var make_design = function(types = [], step = true) {
     var toggle = initiate_counter({
         'lists': lists,
         'cycle': [],
-        'cycle_counter':-1,
+        'cycle_counter':0,
         'to_do': [],
-        'store': [],
-        'part_list':[],
-        'part_finish':[]
-        // 'manual': ''
+        'participant_list':[],
     },lists);
-    var new_counter = toggle[0]
-    var update = toggle[1]
-
+    var [new_counter,update] = toggle
     
-
     // Get the values from the counter 
-    var cycle = new_counter['cycle']
+    var {cycle,cycle_counter,participant_list,to_do} = new_counter
     if (cycle.length == 0) {cycle = generate_cycle(types,lists)}
-    var participant_list = new_counter['part_list'] // List of used participants
-    var participant_finish = new_counter['part_finish'] // List of finished participants
-    var global_to_do = new_counter['to_do']; // List counter
-    var global_store = new_counter['store']; // List counter
-    var cycle_counter = new_counter['cycle_counter']; // Number of rounds
-    // var manual_list = new_counter['manual']; // Manual list
 
-    if (global_to_do.length === 0) {
-        var string_store = [...new Set(global_store.map((x) => {x = x.toString();return x}))].sort().toString()
-        var string_cycle = [...new Set(cycle.map((x) => {x = x.toString();return x}))].sort().toString()
-        if (global_store.length === 0 || string_store === string_cycle) {
-            global_to_do = cycle.slice()
-            global_store = []
-            cycle_counter++
-        } else {
-        var new_to_do = [];
-        var global_store_string = global_store.map((x) => {x = x.toString();return x})
-        cycle.forEach(function (y) {
-            if (!global_store_string.includes(y.toString())){
-                new_to_do.push(y)
-            }
-        });
-        global_to_do = new_to_do.slice()
-        }  
-        }
+    // Regenerate to_do when it is empty
+    if (to_do.length == 0) {
+        to_do = cycle.slice()
+        cycle_counter++
+    }
 
-    var current_list = global_to_do.shift()
-    var participant_id = generate_participant(participant_list);
+    var current_list = to_do.shift().split(',')
 
-
+    // Update the batch session
     if (step) {
     if (update == false) {
         jatos.batchSession.clear()
             .then(() => jatos.batchSession.setAll(new_counter))
-            .then(() => jatos.batchSession.add('/part_list/-',participant_id))
-            .then(() => jatos.batchSession.set('to_do', global_to_do))
+            .then(() => jatos.batchSession.set('to_do', to_do))
             .then(() => jatos.batchSession.set('cycle_counter', cycle_counter))
     } else {
-        jatos.batchSession.add('/part_list/-',participant_id)
-            .then(() => jatos.batchSession.set('to_do', global_to_do))
-            .then(() => jatos.batchSession.set('store', global_store))
+        jatos.batchSession.set('to_do', to_do)
             .then(() => jatos.batchSession.set('cycle_counter', cycle_counter))
+
     }
-    
     }
 
-
-    
     // Get the stimuli for the current list
     var selected_stimuli = []
     for (var t = 0; t < types.length; t++) {
@@ -246,20 +210,46 @@ var make_design = function(types = [], step = true) {
 
 
     var design = {
-        'to_do': global_to_do,
         'current_list': current_list,
-        'store': global_store,
-        'current_participant': participant_id,
-        'participant_counter' : participant_finish.length,
+        'participant_counter' : participant_list.length,
         'cycle_counter': cycle_counter,
-        'cycle' : cycle,
         'lists' : lists,
-        'stimuli': selected_stimuli
+        'cycle' : cycle,
+        'to_do': to_do,
+        'stimuli': selected_stimuli,
+        'finished': false,
+        'closed': false
     };
 
-    console.log(JSON.stringify(design,null,2))
+    console.log(
+    JSON.stringify(design,(k,v) => {if (k === "stimuli" | typeof v === "boolean") {return undefined};if (k === "current_list") {return (k,v.toString())}; if (v.length > 0) {return v.join(' - ')};return (k,v)},2),
+    design['stimuli']
+    )
 
     return design;
 
-}
+};
+
+function store_properties(jsPsych,design) {
+    design['finished'] = true
+    var participant_list = jatos.batchSession.get('participant_list')
+    var participant_id = generate_participant(participant_list);
+    jatos.batchSession.add('/participant_list/-',participant_id)
+    jsPsych.data.addProperties(
+            {'list': design['current_list'].join(','),
+            'participant': participant_id}
+            );
+    jatos.endStudy(jsPsych.data.get().json(),true,
+      'Participant '+participant_id+' finished with list '+design['current_list'].toString()
+    )
+};
+
+function store_list(design) {
+    var to_do = jatos.batchSession.get('to_do')
+    if (design['finished'] === false & design['closed'] === false) {to_do.push(design['current_list'].join(','))}
+    if (design['finished'] === true & design['closed'] === true) {to_do.splice(to_do.indexOf(design['current_list'].join(',')),1)}
+    jatos.batchSession.set('to_do',to_do)
+    design['closed'] = true
+};
+
 

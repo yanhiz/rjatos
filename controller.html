@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!-- 
 // Version 2.0
-// 19-11-2025 
+// 03-12-2025 
 -->
 <html>
   <head>
@@ -34,19 +34,15 @@ jatos.onLoad(() => {
     var screen = {
       type: jsPsychHtmlButtonResponse,
       stimulus : () => {
-        var {lists,current_list,cycle,cycle_counter,to_do,store,participant_counter,...rest} = design
+        var {lists,current_list,cycle,cycle_counter,participant_counter,...rest} = design
         var show_design = ''
         for (key in lists) {
           show_design = show_design.concat(`"${key}" with ${Object.keys(lists[key]).length} conditions, `)
         }
-        if (cycle_counter == 0){ var counter_message = `So far, no complete cycle has been done.`} else {
-          if (cycle_counter == 1) { var counter_message = `So far, 1 complete cycle has been done.`} else { 
-            var counter_message = `So far, ${cycle_counter} complete cycles have been done.`}}
         return `
         <b>Your design is: </b><br>
         ${show_design} which requires <u>${cycle.length} participants</u> for a complete cycle.<br><br>
-        The cycle is the following: ${cycle.map((x) => {x = x.toString().replace(',','');return ' '+x})}<br>
-        ${counter_message}<br><br>
+        We are currently completing cycle #${cycle_counter}.<br><br>
         The next list will be ${current_list}. <br>
         Currently, ${participant_counter} participants finished the experiment.<br><br>
 
