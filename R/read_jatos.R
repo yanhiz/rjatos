@@ -57,6 +57,10 @@ read_jatos <- function(result_file,add_unique_ids=FALSE,remove='response.') {
     left_join(metadata,by='participant') %>%
     rename_with(~str_replace(.x,remove,''))
 
+  if ('1' %in% colnames(data)){
+    data <- data %>% rename(response='1')
+  }
+
   data
 }
 
